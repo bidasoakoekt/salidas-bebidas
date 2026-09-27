@@ -1,0 +1,59 @@
+function showErrorScreen(errInfo, rawErr, attemptDuration, retryCount) {
+  var now = new Date();
+  LAST_ERROR_REPORT = {
+    ts: now, errInfo: errInfo,
+    rawErr: (rawErr && rawErr.message) ? rawErr.message : String(rawErr),
+    duration: attemptDuration, retries: retryCount,
+    browser: navigator.userAgent,
+    screen:  window.screen.width + 'x' + window.screen.height,
+    lang:    navigator.language,
+    online:  navigator.onLine
+  };
+  var scr = document.getElementById('error-screen');
+  if (!scr) {
+    scr = document.createElement('div');
+    scr.id = 'error-screen';
+    scr.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(43,36,32,.96);display:flex;align-items:center;justify-content:center;padding:20px;';
+    document.body.appendChild(scr);
+  }
+  var rawMsg  = (rawErr && rawErr.message) ? rawErr.message : String(rawErr);
+  var dur     = (attemptDuration/1000).toFixed(1);
+  var online  = navigator.onLine ? 'online' : 'offline';
+  var techHtml = [
+    '<b style="color:#aaa;">RESUMEN</b><br>',
+    'Fecha y hora: ' + fmtDate(now) + '<br>',
+    'Tipo de fallo: ' + errInfo.type + ' [' + errInfo.code + ']<br>',
+    '<br><b style="color:#aaa;">DETALLES</b><br>',
+    'Mensaje: ' + rawMsg + '<br>',
+    'Duracion intento: ' + dur + 's<br>',
+    'Reintentos: ' + retryCount + '<br>',
+    '<br><b style="color:#aaa;">ENTORNO</b><br>',
+    'Navegador: ' + navigator.userAgent + '<br>',
+    'Pantalla: ' + window.screen.width + 'x' + window.screen.height + '<br>',
+    'Idioma: ' + navigator.language + '<br>',
+    'Conexion: ' + online + '<br>'
+  ].join('');
+  scr.innerHTML = [
+    '<div style="background:#1A1A1A;border-radius:16px;width:min(540px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.5);border-top:3px solid #C41217;">',
+      '<div style="padding:24px 24px 0;">',
+        '<div style="font-size:11px;color:#888;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">EKT Bodega</div>',
+        '<div style="font-family:Fraunces,serif;font-size:20px;color:#fff;margin-bottom:6px;">No se pudo conectar con Drive</div>',
+        '<div style="font-size:13px;color:#aaa;margin-bottom:20px;line-height:1.6;">',
+          '<strong style="color:#E88;">Tipo de fallo:</strong> ' + errInfo.type + '<br>',
+          '<span style="color:#999;">' + errInfo.hint + '</span>',
+        '</div>',
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">',
+          '<button onclick="retryConnection()" style="background:#C41217;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;">Reintentar</button>',
+          '<button onclick="exitApp()" style="background:#333;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;min-width:120px;">Salir</button>',
+        '</div>',
+        '<div style="border-top:1px solid #2a2a2a;padding-top:14px;">',
+          '<button onclick="toggleTechDetails()" style="background:none;border:none;color:#666;font-size:12px;cursor:pointer;padding:0;">Ver detalles tecnicos</button>',
+          '<div id="tech-details" style="display:none;margin-top:12px;background:#111;border-radius:8px;padding:14px;font-size:11px;color:#888;line-height:1.8;font-family:monospace;">' + techHtml + '</div>',
+        '</div>',
+        '<div style="padding:14px 0 24px;">',
+          '<button id="btn-send-error" onclick="sendErrorEmail()" style="background:none;border:1px solid #333;color:#888;border-radius:8px;padding:8px 16px;font-size:12px;cursor:pointer;width:100%;">Enviar informe de error a soporte</button>',
+        '</div>',
+      '</div>',
+    '</div>'
+  ].join('');
+}
